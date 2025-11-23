@@ -4,8 +4,7 @@ const CLIENT_ID = "284711238420-jei4nevj7bh2jedqkfri7g1vcbc3ac6u.apps.googleuser
 const SCOPES = "https://www.googleapis.com/auth/spreadsheets.readonly openid profile email";
 const SPREADSHEET_ID = "1HBZhADqWF_9FpHUlU106nh4J7i4hvDot8Xnkgjg_pks";
 const RANGE = "'Data Template'!A1:Z1000";
-// local preview image path (your uploaded file) - used in signin modal
-const PREVIEW_IMAGE_PATH = "/mnt/data/a39ed741-c198-4012-88e7-03c63c8f7a25.png";
+
 // ===================================
 
 let tokenClient;
