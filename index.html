@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Kasatria Assignment — 3D Sheet Visualizer by Azan Babar</title>
+
+    <style>
+        :root {
+            --bg: #041018;
+            --panel: #05232b;
+            --muted: rgba(255, 255, 255, 0.7);
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            font-family: Inter, Roboto, Arial, sans-serif;
+            background: linear-gradient(180deg, #021018 0%, #041827 100%);
+            color: var(--muted);
+        }
+
+        header {
+            padding: 14px 18px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.08);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        h1 {
+            font-size: 16px;
+            margin: 0;
+            color: #bff;
+            font-weight: 600;
+        }
+
+        #top-controls {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        button {
+            color: var(--muted);
+            background: transparent;
+            outline: 1px solid rgba(127, 255, 255, 0.12);
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: rgba(0, 255, 255, 0.06);
+        }
+
+        #container {
+            width: 100%;
+            height: calc(100vh - 120px);
+            box-sizing: border-box;
+        }
+
+        #menu {
+            padding: 10px 16px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: transparent;
+        }
+
+        #status {
+            margin-left: 10px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* .element minimal fallback styling (script will override some inline) */
+        .element {
+            width: 120px;
+            height: 160px;
+            box-sizing: border-box;
+            border-radius: 8px;
+            overflow: hidden;
+            font-family: Inter, Arial, sans-serif;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 8px;
+            color: #000;
+            -webkit-user-select: none;
+            user-select: none;
+            transition: transform 200ms ease, box-shadow 200ms ease;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(6px);
+        }
+
+        .element img {
+            display: block;
+            width: 100%;
+            height: 64px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 6px;
+        }
+
+        /* hover: lift slightly */
+        .element:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(2, 20, 22, 0.7);
+        }
+
+        /* ensure number overlay looks nice */
+        .element .number {
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 600;
+        }
+
+        /* make symbol (name) area compact */
+        .element .symbol {
+            font-size: 16px !important;
+        }
+
+        /* small-screen adjustments */
+        @media (max-width:720px) {
+            .element {
+                width: 140px !important;
+                height: 180px !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Kasatria — 3D Sheet Visualizer by Azan Babar</h1>
+
+    </header>
+    <!-- SIGN-IN MODAL (paste into body, near top) -->
+    <div id="signin-modal" aria-hidden="false" style="display:flex;align-items:center;justify-content:center;
+     position:fixed;inset:0;background:rgba(1,6,8,0.6);z-index:9999;">
+        <div id="signin-card" role="dialog" aria-modal="true" style="width:520px;max-width:92vw;background:#fff;border-radius:12px;padding:28px;box-shadow:0 18px 60px rgba(2,10,14,0.6);
+              display:flex;flex-direction:column;align-items:center;gap:18px;color:#07313a;">
+            <!-- optional decorative image (your uploaded preview) -->
+            <img src="/mnt/data/a39ed741-c198-4012-88e7-03c63c8f7a25.png" alt=""
+                style="width:180px;height:auto;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.12);" />
+
+            <div style="text-align:center;">
+                <h2 style="margin:0;color:#042b2b;font-weight:700;font-size:20px;">Welcome back</h2>
+                <p style="margin:6px 0 0;color:#456;max-width:420px;">Sign in with your Google account to load the
+                    spreadsheet and continue.</p>
+            </div>
+
+            <!-- Google-like button -->
+            <button id="modal-signin-btn" style="
+        display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:26px;
+        border:1px solid rgba(0,0,0,0.08);background:#fff;font-weight:600;cursor:pointer;
+        box-shadow:0 6px 14px rgba(3,10,15,0.06);">
+                <!-- Google "G" mark (inline SVG) -->
+                <span style="display:inline-flex;width:20px;height:20px;">
+                    <svg viewBox="0 0 48 48" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="#EA4335"
+                            d="M24 9.5c3.9 0 7 1.4 9.2 3.7l6.9-6.8C35.9 2.1 30.2 0 24 0 14.6 0 6.8 4.9 3 12.1l7 5.4C12.6 13 17.7 9.5 24 9.5z" />
+                        <path fill="#34A853"
+                            d="M46.5 24.5c0-1.6-.1-2.8-.4-4H24v8h12.7c-.5 3-2.5 5.6-5.3 7.3l8.1 6.2c4.8-4.4 7.9-11 7.9-17.5z" />
+                        <path fill="#4A90E2"
+                            d="M10.1 28.8c-.7-2-1-4.1-1-6.3s.4-4.3 1-6.3L3 11.1C1.1 14.6 0 18.7 0 24s1.1 9.4 3 12.9l7.1-8.1z" />
+                        <path fill="#FBBC05"
+                            d="M24 48c6.2 0 11.9-2.1 16.1-5.7l-8.1-6.2c-2.4 1.6-5.5 2.5-8 2.5-6.3 0-11.5-3.5-13.9-8.6l-7.1 8.1C6.8 43.1 14.6 48 24 48z" />
+                    </svg>
+                </span>
+                <span style="color:#222">Sign in with Google</span>
+            </button>
+
+            <div style="font-size:12px;color:#6b7c7b;">We’ll only read the spreadsheet you provide for the assignment.
+            </div>
+        </div>
+    </div>
+
+
+    <main>
+        <section style="padding:12px 16px 6px;">
+            <div id="info" style="font-size:13px; color:var(--muted)">three.js css3d — modified periodic table using
+                Google Sheets data</div>
+        </section>
+
+        <div id="container"></div>
+
+        <div id="menu">
+            <button id="table">TABLE (20×10)</button>
+            <button id="sphere">SPHERE</button>
+            <button id="helix">DOUBLE HELIX</button>
+            <button id="grid">GRID (5×4×10)</button>
+            <span id="status">Status: waiting for data</span>
+        </div>
+    </main>
+
+    <!-- Libraries (order matters) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
+
+    <!-- three.js (non-module) -->
+    <script src="https://unpkg.com/three@0.128.0/build/three.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/renderers/CSS3DRenderer.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/TrackballControls.js"></script>
+
+
+
+
+    <!-- TWEEN for smooth animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+
+    <!-- Your main script (must be last so DOM exists) -->
+    <script src="script.js"></script>
+
+</body>
+
+</html>
